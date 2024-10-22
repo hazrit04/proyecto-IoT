@@ -23,8 +23,6 @@ void setup() {
 
 void loop() {
   // Leer datos del sensor
-  //Vector rawAccel = mpu.readRawAccel(); // Lee los valores crudos del acelerómetro
-  //Vector normAccel = mpu.readNormalizeAccel(); // Lee los valores normalizados del acelerómetro
   int16_t ax, ay, az;
   int16_t gx, gy, gz;
 
