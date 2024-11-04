@@ -13,6 +13,9 @@ const int motorPin = 26;
 long duration;
 int distance;
 
+// Umbral para detectar caída
+const int FALL_THRESHOLD = 20000;
+
 void setup() {
   Serial.begin(115200);
 
@@ -52,6 +55,14 @@ void loop() {
   Serial.print(" | Giroscopio Y: "); Serial.print(gy);
   Serial.print(" | Giroscopio Z: "); Serial.println(gz);
 
+  // Calcular el valor absoluto de la aceleración total
+  int totalAcceleration = abs(ax) + abs(ay) + abs(az);
+  // Verificar si se excede el umbral de caída
+  if(totalAcceleration > FALL_THRESHOLD) {
+    Serial.println("¡Caída detectada! Activando alerta de emergencia...");
+    simulateEmergencyCall();
+  }
+
   // Leer datos del sensor ultrasónico
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
@@ -78,4 +89,11 @@ void loop() {
   }
   // Las lecturas se hacen cada medio segundo
   delay(2000);
+}
+
+// Función para simular llamada a contacto de emergencia
+void simulateEmergencyCall() {
+  Serial.println("Simulanndo llamada a contacto de emergencia...");
+  // Esperar 5 segundos como simulación de la llamada
+  delay(5000);
 }
