@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ThingSpeak Data</title>
+  <style>
+    /* Estilo general */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f3ff; /* Fondo lila claro */
+      margin: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #4b0082; /* Texto morado oscuro */
+    }
+ 
+    /* Estilo de las tarjetas */
+    .card {
+      border: 1px solid #dcd6f7;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin: 10px;
+      padding: 20px;
+      width: 320px;
+      text-align: center;
+      background-color: #e8e3fc; /* Fondo morado claro */
+      transition: background-color 0.3s;
+    }
+ 
+    /* Colores para estado de emergencia */
+    .card.emergency {
+      background-color: #ff4d4d; /* Rojo para estado crítico */
+      color: white;
+    }
+ 
+    /* Estilo para el botón */
+    .button {
+      background-color: #6a0dad; /* Botón morado oscuro */
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 15px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+ 
+    .button:hover {
+      background-color: #4b0082; /* Tonalidad más oscura al pasar el mouse */
+    }
+ 
+    /* Contenedor de datos históricos */
+    #historicalData {
+      margin-top: 20px;
+      max-width: 600px;
+      font-size: 14px;
+      text-align: left;
+      color: #4b0082;
+    }
+ 
+    #phoneInput {
+      border-radius: 15px;
+      padding: 3%;
+      width: 100%;
+      border: 1px solid #4b0082 ;
+      box-sizing: border-box;
+    }
+ 
+    #saveButton, #deleteButton {
+      margin-top: 20px;
+      border-radius: 15px;
+      border: 1px solid #4b0082 ;
+      background: white !important;
+      padding: 2%;
+      color: #4b0082;
+      transition: all 0.3s ease;
+      width: 40%;
+      cursor: pointer !important;
+    }
+   
+    #saveButton:hover, #deleteButton:hover {
+      transform: scale(1.1);
+      color: white;
+      background: #4b0082 !important;
+    }
+ 
+  </style>
+</head>
+<body>
+  <h1 style="color: #6a0dad;">Datos de ThingSpeak</h1>
+ 
+  <!-- Acelerómetro -->
+  <div class="card" id="accelerometerCard">
+    <h3>Aceleración</h3>
+    <div id="field1">Cargando...</div>
+  </div>
+ 
+  <!-- Llamada de Emergencia -->
+  <div class="card" id="emergencyCard">
+    <h3>Llamada de emergencia</h3>
+    <p>Estado: Normal</p>
+ 
+    <input type="tel" id="phoneInput" placeholder="Ingrese un número de teléfono">
+    <button id="saveButton" onclick="savePhone()">Guardar</button>
+    <button id="deleteButton" onclick="deletePhone()">Eliminar</button>
+    <p id="phoneDisplay" style="display: none;">Teléfono de emergencia: <span id="phoneText"></span></p>
+ 
+ 
+  </div>
+ 
+  <!-- Botón para consultar históricos -->
+  <div class="card">
+    <h3>Consultar históricos</h3>
+    <button id="fetchHistoricalData" class="button">Obtener históricos</button>
+    <div id="historicalData"></div>
+  </div>
+ 
+  <script>
+    const apiKey = 'D75MT76CVXURKPU1';
+    const channelId = '2727289';
+ 
+    // Función para actualizar datos en tiempo real
+    function fetchData() {
+      fetch(`https://api.thingspeak.com/channels/${channelId}/feeds/last.json?api_key=${apiKey}`)
+        .then(response => response.json())
+        .then(data => {
+          const field1 = parseFloat(data.field1); // Valor del acelerómetro
+          document.getElementById('field1').textContent = field1 + " m/s²";
+ 
+          // Cambiar estado de la tarjeta de emergencia
+          const emergencyCard = document.getElementById('emergencyCard');
+          if (field1 > 30000) {
+            emergencyCard.classList.add('emergency');
+            emergencyCard.querySelector('p').textContent = "Estado: Emergencia";
+          } else {
+            emergencyCard.classList.remove('emergency');
+            emergencyCard.querySelector('p').textContent = "Estado: Normal";
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    }
+ 
+    // Función para consultar datos históricos
+    function fetchHistoricalData() {
+      fetch(`https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${apiKey}&results=50`)
+        .then(response => response.json())
+        .then(data => {
+          const historicalDataDiv = document.getElementById('historicalData');
+          historicalDataDiv.innerHTML = ''; // Limpiar contenido previo
+ 
+          data.feeds.forEach(feed => {
+            const div = document.createElement('div');
+            div.textContent = `Time: ${feed.created_at}, Aceleración: ${feed.field1}, Distancia: ${feed.field2}`;
+            historicalDataDiv.appendChild(div);
+          });
+        })
+        .catch(error => {
+          console.error('Error fetching historical data:', error);
+        });
+    }
+ 
+    // Configurar eventos
+    window.onload = () => {
+      fetchData();
+      setInterval(fetchData, 15000); // Actualizar cada 15 segundos
+    };
+ 
+    document.getElementById('fetchHistoricalData').addEventListener('click', fetchHistoricalData);
+ 
+    // Telefono de emergencia -- Actualizar telefono
+    function savePhone() {
+    var phoneInput = document.getElementById('phoneInput').value;
+    var phoneDisplay = document.getElementById('phoneDisplay');
+    var phoneText = document.getElementById('phoneText');
+ 
+    if (phoneInput) {
+      phoneText.textContent = phoneInput;  
+      phoneDisplay.style.display = 'block';  
+ 
+      alert('Número de telefono guardado exitosamente.')
+    } else {
+      alert('Por favor, ingrese un número de teléfono válido.');
+    }
+  }
+ 
+  // Eliminar telefono de emergencia
+  function deletePhone() {
+    document.getElementById('phoneInput').value = '';
+    document.getElementById('phoneDisplay').style.display = 'none';
+    alert('Número de telefono eliminado exitosamente.')
+  }
+  </script>
+</body>
+</html>

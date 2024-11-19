@@ -31,8 +31,8 @@ uint32_t startMillis;
 const uint16_t timerDuration = 15000;
 
 // Credenciales WiFi
-const char *ssid = "INFINITUM54EE";
-const char *password = "26MDHnsaag";
+const char *ssid = "IoT";
+const char *password = "1t3s0IoT23";
 WiFiClient  client;
 
 // ThingSpeak
